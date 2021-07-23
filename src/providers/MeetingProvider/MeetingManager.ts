@@ -14,7 +14,9 @@ import {
   AudioVideoObserver,
   MultiLogger,
   MeetingSessionPOSTLogger,
-  EventReporter
+  EventReporter,
+  VideoDownlinkBandwidthPolicy,
+  Logger
 } from 'amazon-chime-sdk-js';
 
 import {
@@ -110,6 +112,10 @@ export class MeetingManager implements AudioVideoObserver {
 
   simulcastEnabled: boolean = false;
 
+  videoDownlinkBandwidthPolicy: VideoDownlinkBandwidthPolicy;
+
+  logger: Logger;
+
   constructor(config: ManagerConfig) {
     this.logLevel = config.logLevel;
 
@@ -119,6 +125,14 @@ export class MeetingManager implements AudioVideoObserver {
 
     if (config.postLogConfig) {
       this.postLoggerConfig = config.postLogConfig;
+    }
+
+    if (config.logger) {
+      this.logger = config.logger;
+    }
+
+    if (config.videoDownlinkBandwidthPolicy) {
+      this.videoDownlinkBandwidthPolicy = config.videoDownlinkBandwidthPolicy;
     }
   }
 
@@ -198,7 +212,18 @@ export class MeetingManager implements AudioVideoObserver {
     configuration: MeetingSessionConfiguration,
     deviceLabels: DeviceLabels | DeviceLabelTrigger = DeviceLabels.AudioAndVideo,
   ): Promise<any> {
-    const logger = this.createLogger(configuration);
+    let logger: Logger;
+
+    if (this.logger) {
+      logger = this.logger;
+    } else {
+      logger = this.createLogger(configuration);
+    }
+
+    if (this.videoDownlinkBandwidthPolicy) {
+      configuration.videoDownlinkBandwidthPolicy = this.videoDownlinkBandwidthPolicy;
+    }
+
     const deviceController = new DefaultDeviceController(logger);
     this.meetingSession = new DefaultMeetingSession(
       configuration,

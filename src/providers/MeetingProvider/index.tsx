@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useContext, useState, createContext } from 'react';
-import { LogLevel } from 'amazon-chime-sdk-js';
+import { Logger, LogLevel, VideoDownlinkBandwidthPolicy } from 'amazon-chime-sdk-js';
 
 import MeetingManager from './MeetingManager';
 import { PostLogConfig } from './types';
@@ -26,6 +26,8 @@ interface Props {
    * across multiple different `MeetingProvider`s. This approach has limitations.
    * Check `meetingManager` prop documentation for more information.
   */
+  logger?: Logger;
+  videoDownlinkBandwidthPolicy?: VideoDownlinkBandwidthPolicy;
   meetingManager?: MeetingManager;
 }
 
@@ -35,11 +37,13 @@ export const MeetingProvider: React.FC<Props> = ({
   logLevel = LogLevel.WARN,
   postLogConfig,
   simulcastEnabled = false,
+  logger,
+  videoDownlinkBandwidthPolicy,
   meetingManager: meetingManagerProp,
   children,
 }) => {
   const [meetingManager] = useState(
-    () => meetingManagerProp || new MeetingManager({ logLevel, postLogConfig, simulcastEnabled })
+    () => meetingManagerProp || new MeetingManager({ logLevel, postLogConfig, simulcastEnabled, logger, videoDownlinkBandwidthPolicy })
   );
 
   return (
